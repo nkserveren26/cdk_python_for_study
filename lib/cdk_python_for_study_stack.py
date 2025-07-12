@@ -1,0 +1,19 @@
+from aws_cdk import (
+    # Duration,
+    Stack,
+    # aws_sqs as sqs,
+)
+from constructs import Construct
+from lib.my_constructs.network.subnet_construct import SubnetConstruct
+from lib.my_constructs.network.vpc_construct import VpcConstruct
+
+class CdkPythonForStudyStack(Stack):
+
+    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+        super().__init__(scope, construct_id, **kwargs)
+
+
+        vpc = VpcConstruct(self, "TestVPC")
+
+        azs = self.availability_zones[:2]  # 最初の2つのAZを取得
+        subnet = SubnetConstruct(self, "TestSubnet", vpc.vpc.ref, azs)

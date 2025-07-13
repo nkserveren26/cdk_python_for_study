@@ -3,12 +3,12 @@ from constructs import Construct
 
 class NatGatewayConstruct(Construct):
     def __init__(self, scope: Construct, id: str,
-                 public_subnets: list[ec2.CfnSubnet],  private_route_tables: list[ec2.CfnRouteTable]):
+                 public_subnet_ids: list[str],  private_route_table_ids: list[str]):
         super().__init__(scope, id)
 
         self.nat_gateways = []
 
-        for i, (pub_subnet, priv_rt) in enumerate(zip(public_subnets, private_route_tables)):
+        for i, (subnet_id, route_table_id) in enumerate(zip(public_subnet_ids, private_route_table_ids)):
             # Elastic IP
             eip = ec2.CfnEIP(self, f"EIP{i}")
 
@@ -16,7 +16,7 @@ class NatGatewayConstruct(Construct):
             nat_gw = ec2.CfnNatGateway(
                 self, f"NATGateway{i}",
                 allocation_id=eip.attr_allocation_id,
-                subnet_id=pub_subnet.ref,
+                subnet_id=subnet_id,
                 tags=[{"key": "Name", "value": f"NATGateway-{i}"}]
             )
             self.nat_gateways.append(nat_gw)
@@ -24,7 +24,7 @@ class NatGatewayConstruct(Construct):
             # プライベートRTにデフォルトルート追加（NAT Gateway宛）
             ec2.CfnRoute(
                 self, f"PrivateRoute{i}",
-                route_table_id=priv_rt.ref,
+                route_table_id=route_table_id,
                 destination_cidr_block="0.0.0.0/0",
                 nat_gateway_id=nat_gw.ref
             )

@@ -3,24 +3,28 @@ from constructs import Construct
 
 class NatGatewayConstruct(Construct):
     def __init__(self, scope: Construct, id: str,
-                 public_subnet_id: str, private_route_table_id: str):
+                 public_subnets: list[ec2.CfnSubnet],  private_route_tables: list[ec2.CfnRouteTable]):
         super().__init__(scope, id)
 
-        # 1. Elastic IP
-        eip = ec2.CfnEIP(self, "NatEIP")
+        self.nat_gateways = []
 
-        # 2. NAT Gateway（パブリックサブネットに配置）
-        nat_gw = ec2.CfnNatGateway(
-            self, "NatGateway",
-            allocation_id=eip.attr_allocation_id,
-            subnet_id=public_subnet_id,
-            tags=[{"key": "Name", "value": "NatGateway"}]
-        )
+        for i, (pub_subnet, priv_rt) in enumerate(zip(public_subnets, private_route_tables)):
+            # Elastic IP
+            eip = ec2.CfnEIP(self, f"EIP{i}")
 
-        # 3. プライベートルートテーブルにデフォルトルートを追加
-        ec2.CfnRoute(
-            self, "PrivateDefaultRoute",
-            route_table_id=private_route_table_id,
-            destination_cidr_block="0.0.0.0/0",
-            nat_gateway_id=nat_gw.ref
-        )
+            # NAT Gateway（パブリックサブネットに設置）
+            nat_gw = ec2.CfnNatGateway(
+                self, f"NATGateway{i}",
+                allocation_id=eip.attr_allocation_id,
+                subnet_id=pub_subnet.ref,
+                tags=[{"key": "Name", "value": f"NATGateway-{i}"}]
+            )
+            self.nat_gateways.append(nat_gw)
+
+            # プライベートRTにデフォルトルート追加（NAT Gateway宛）
+            ec2.CfnRoute(
+                self, f"PrivateRoute{i}",
+                route_table_id=priv_rt.ref,
+                destination_cidr_block="0.0.0.0/0",
+                nat_gateway_id=nat_gw.ref
+            )

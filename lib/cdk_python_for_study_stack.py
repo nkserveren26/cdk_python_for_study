@@ -9,6 +9,7 @@ from lib.my_constructs.network.route_table_construct import RouteTableConstruct
 from lib.my_constructs.network.subnet_construct import SubnetConstruct
 from lib.my_constructs.network.vpc_construct import VpcConstruct
 from lib.my_constructs.storage.s3_bucket_construct import S3BucketConstruct
+from lib.my_constructs.storage.aurora_construct import AuroraClusterConstruct
 
 class CdkPythonForStudyStack(Stack):
 
@@ -16,9 +17,9 @@ class CdkPythonForStudyStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
 
 
-        '''
         vpc = VpcConstruct(self, "TestVPC")
 
+        '''
         azs = self.availability_zones[:2]  # 最初の2つのAZを取得
         subnet = SubnetConstruct(self, "TestSubnet", vpc.vpc.ref, azs)
 
@@ -32,6 +33,9 @@ class CdkPythonForStudyStack(Stack):
             public_subnet_ids=[s.ref for s in subnet.public_subnets],
             private_subnet_ids=[s.ref for s in subnet.private_subnets]
         )
+        '''
+
+        '''
         
         nat_gateway = NatGatewayConstruct(
             self,
@@ -47,4 +51,10 @@ class CdkPythonForStudyStack(Stack):
             bucket_name="myapp-sample-bucket-123456",
             versioned=True,
             block_public_access=True
+        )
+
+        aurora_construct = AuroraClusterConstruct(
+            self,
+            "Aurora",
+            vpc=vpc.vpc
         )

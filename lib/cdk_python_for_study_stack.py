@@ -43,7 +43,7 @@ class CdkPythonForStudyStack(Stack):
             public_subnet_ids=[s.ref for s in subnet.public_subnets],
             private_route_table_ids=[r.ref for r in route_table.private_route_tables]
         )
-        '''
+        
 
         bucket_construct = S3BucketConstruct(
             self,
@@ -52,6 +52,7 @@ class CdkPythonForStudyStack(Stack):
             versioned=True,
             block_public_access=True
         )
+        '''
 
         aurora_construct = AuroraClusterConstruct(
             self,

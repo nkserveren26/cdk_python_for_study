@@ -33,7 +33,7 @@ class AuroraClusterConstruct(Construct):
                 version=rds.AuroraMysqlEngineVersion.VER_3_06_0
             ),
             credentials=db_credentials,
-            writer=rds.ClusterInstance.provisioned("writer",instance_type=ec2.InstanceType("t3.medium")),
+            writer=rds.ClusterInstance.provisioned("writer",instance_type=ec2.InstanceType("t3.medium"), auto_minor_version_upgrade=False),
             default_database_name="mydatabase",
             vpc=vpc,
             vpc_subnets=ec2.SubnetSelection(
